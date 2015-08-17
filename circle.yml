@@ -1,0 +1,17 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker build -t test-integration-python:latest .
+
+test:
+  override:
+    - docker run -e "APIKEY=${APIKEY}" --name=test-integration-python test-integration-python:latest
+  post:
+    - docker commit test-integration-python test-integration-python:latest
+    - docker run --name=DUMP-test-integration-python test-integration-python:latest vagrant ssh -- sudo journalctl
+    - docker run --name=DESTROY-test-integration-python test-integration-python:latest vagrant destroy -f
+    # TODO: Collect container as an asset?
+
