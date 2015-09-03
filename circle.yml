@@ -5,6 +5,9 @@ machine:
 dependencies:
   override:
     - docker build -t test-integration-python:latest .
+
+test:
+  pre:
     - >
       docker run
       -e "APIKEY=${APIKEY}"
@@ -13,8 +16,6 @@ dependencies:
       -e "IMAGE=${IMAGE:-coreos-beta}"
       --name=test-integration-python-init test-integration-python:latest /initialize.sh
     - docker commit test-integration-python-init test-integration-python:latest
-
-test:
   override:
     - docker run --name=test-integration-python test-integration-python:latest /run_tests.sh
   post:
