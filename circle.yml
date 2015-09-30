@@ -10,18 +10,17 @@ test:
   pre:
     - >
       docker run
-      -e "APIKEY=${APIKEY}"
       -e "CIRCLE_PROJECT_REPONAME=${CIRCLE_PROJECT_REPONAME}"
       -e "CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM}"
       -e "IMAGE=${IMAGE:-coreos-beta}"
       -e "CHANNEL=${CHANNEL:-development}"
+      -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+      -e "AWS_SECRET_KEY=${AWS_SECRET_KEY}"
       --name=test-integration-python-init test-integration-python:latest /initialize.sh
     - docker commit test-integration-python-init test-integration-python:latest
   override:
     - docker run --name=test-integration-python test-integration-python:latest /run_tests.sh
   post:
-    - docker run test-integration-python:latest ssh-keygen -l -f /.ssh/id_rsa | awk '{ print $2 }' > ~/sshid
     - docker run --name=DUMP-test-integration-python test-integration-python:latest vagrant ssh -- sudo journalctl
     - docker run --name=DESTROY-test-integration-python test-integration-python:latest vagrant destroy -f
     # TODO: Collect container as an asset?
-    - 'curl -f -X DELETE -H "Content-Type: application/json" -H "Authorization: Bearer ${APIKEY}" https://api.digitalocean.com/v2/account/keys/$(cat ~/sshid)'
